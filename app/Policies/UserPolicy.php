@@ -14,9 +14,13 @@ class UserPolicy
         //
     }
 
+    public function viewAny(User $user)
+    {
+        return $user->role === 'admin';
+    }
+
     public function delete(User $user)
     {
-        // return $user->name; 
-        return $user->role == 'admin'; 
+        return $user->role === 'admin'; 
     }
 }

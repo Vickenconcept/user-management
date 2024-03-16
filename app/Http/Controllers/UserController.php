@@ -12,15 +12,14 @@ class UserController extends Controller
      */
     public function index()
     {
-        try {
-            $users =  User::latest()->get();
+        $this->authorize('viewAny', User::class);
 
-            return response()->json($users);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'error' => $e->errors(),
-            ], 422);
-        }
+        $users =  User::latest()->get();
+
+
+        return response()->json([
+            'users' => $users, 
+        ]);
     }
 
     /**
@@ -42,9 +41,10 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+
+        return response()->json($user);
     }
 
     /**
@@ -91,13 +91,11 @@ class UserController extends Controller
     public function destroy(User $user)
     {
 
-            $this->authorize('delete', User::class);
-            $user->delete();
+        $this->authorize('delete', User::class);
+        $user->delete();
 
-            return response()->json([
-                'message' => 'User Deleted Successfully',
-            ], 204);
-
-            // return response()->noContent();
+        return response()->json([
+            'message' => 'User Deleted Successfully',
+        ], 204);
     }
 }

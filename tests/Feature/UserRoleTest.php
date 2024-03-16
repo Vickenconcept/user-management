@@ -44,9 +44,8 @@ class UserRoleTest extends TestCase
         ]);
     }
 
-    public function test_user_can_delete_user()
+    public function test_user_cannot_delete_user()
     {
-        // Create a user with the role 'user'
         $user = User::factory()->create([
             'email' => 'user@example.com',
             'password' => bcrypt('password'),
@@ -67,65 +66,41 @@ class UserRoleTest extends TestCase
     }
 
 
+    public function test_user_can_view_own_profile()
+    {
+        $user = User::factory()->create();
 
-    // public function test_user_can_view_own_profile()
-    // {
-    //     $user = User::factory()->create();
+        Passport::actingAs($user);
 
-    //     Passport::actingAs($user);
+        $response = $this->getJson('/api/profile');
 
-    //     $response = $this->getJson('/api/profile');
+        $response->assertStatus(200);
 
-    //     $response->assertStatus(200)
-    //         ->assertJson([
-    //             'email' => $user->email,
-    //         ]);
-    // }
+    }
 
-    // public function test_user_can_view_other_user()
-    // {
-    //     $user = User::factory()->create();
+    public function test_admin_can_view_all_users()
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
 
-    //     Passport::actingAs($user);
+        Passport::actingAs($admin);
 
-    //     $response = $this->getJson('/api/users');
+        $users = User::factory()->count(3)->create();
 
-    //     $response->assertStatus(200)
-    //         ->assertJson([
-    //             'email' => $user->email,
-    //         ]);
-    // }
+        $response = $this->getJson('/api/users');
 
-    // public function test_user_can_update_own_profile()
-    // {
-    //     $user = User::factory()->create();
+        $response->assertStatus(200);
 
-    //     Passport::actingAs($user);
+    }
 
-    //     $updateData = [
-    //         'name' => $this->faker->name,
-    //         'email' => $this->faker->unique()->safeEmail,
-    //         'password' => 'password',
-    //     ];
+    public function test_non_admin_cannot_view_all_users()
+    {
+        $user = User::factory()->create(['role' => 'user']);
 
-    //     $response = $this->putJson('/api/users', $updateData);
+        Passport::actingAs($user);
 
-    //     $response->assertStatus(200)
-    //         ->assertJson($updateData);
+        $response = $this->getJson('/api/users');
 
-    //     $this->assertDatabaseHas('users', $updateData);
-    // }
-
-    // public function test_user_can_delete_own_account()
-    // {
-    //     $user = User::factory()->create();
-
-    //     Passport::actingAs($user);
-
-    //     $response = $this->deleteJson('/api/users');
-
-    //     $response->assertStatus(204);
-
-    //     $this->assertDeleted($user);
-    // }
+        $response->assertStatus(403);
+    }
 }
+
