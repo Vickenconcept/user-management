@@ -90,20 +90,14 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        try {
 
             $this->authorize('delete', User::class);
             $user->delete();
 
             return response()->json([
                 'message' => 'User Deleted Successfully',
-            ]);
+            ], 204);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
-            return response()->json([
-                'error' => $e->errors(),
-            ], 422);
-        }
+            // return response()->noContent();
     }
 }

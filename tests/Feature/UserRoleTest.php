@@ -22,41 +22,51 @@ class UserRoleTest extends TestCase
     // }
 
 
-    public function test_Admin_can_delete_user()
+    public function test_admin_can_delete_user()
     {
-        
-        $user = [
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
+
+        $admin = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => bcrypt('password'),
             'role' => 'admin',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ];
+        ]);
 
-        $response = $this->postJson('/api/register', $user);
+        Passport::actingAs($admin);
 
-        $response->assertStatus(201);
+        $userToDelete = User::factory()->create();
 
+        $response = $this->deleteJson('/api/users/' . $userToDelete->id);
 
-        $loginData = [
-            'email' => $user['email'],
-            'password' => 'password',
-        ];
+        $response->assertStatus(Response::HTTP_NO_CONTENT);
 
-        $response = $this->postJson('/api/login', $loginData);
-
-        Passport::actingAs($loginData);
-
-        $response->assertStatus(204);
-     
-        // $response = $this->deleteJson('/api/users/'.$this->user->id);
-        
-
-
-        // $response->assertStatus(204);
-
-        // $this->assertDeleted($user);
+        $this->assertDatabaseMissing('users', [
+            'id' => $userToDelete->id,
+        ]);
     }
+
+    public function test_user_can_delete_user()
+    {
+        // Create a user with the role 'user'
+        $user = User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+        ]);
+
+        Passport::actingAs($user);
+
+        $userToDelete = User::factory()->create();
+
+        $response = $this->deleteJson('/api/users/' . $userToDelete->id);
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $userToDelete->id,
+        ]);
+    }
+
+
 
     // public function test_user_can_view_own_profile()
     // {
